@@ -1,0 +1,41 @@
+<section class="section cart-page" data-cart-page>
+  <div class="container">
+    <header class="collection__head"><h1 class="collection__title">{{ 'cart.title' | t }}</h1></header>
+    {%- if cart.item_count > 0 -%}
+      <form action="{{ routes.cart_url }}" method="post" class="cart-page__layout">
+        <div class="cart-page__items">
+          {%- for item in cart.items -%}
+            {% render 'cart-item', item: item, index: forloop.index %}
+          {%- endfor -%}
+        </div>
+        <aside class="cart-page__summary">
+          {%- if section.settings.show_note -%}
+            <label for="CartNote" class="cart-page__label">{{ 'cart.note' | t }}</label>
+            <textarea id="CartNote" name="note" class="textarea" rows="3">{{ cart.note }}</textarea>
+          {%- endif -%}
+          <div class="cart-total">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <span>{{ cart.total_price | money_with_currency }}</span>
+          </div>
+          <p class="cart-note-small">{{ 'cart.taxes_shipping' | t }}</p>
+          <button type="submit" name="checkout" class="btn btn--block">{{ 'cart.checkout' | t }}</button>
+          {%- if additional_checkout_buttons -%}
+            <div class="cart-page__extra">{{ content_for_additional_checkout_buttons }}</div>
+          {%- endif -%}
+        </aside>
+      </form>
+    {%- else -%}
+      <div class="empty-state">
+        <p>{{ 'cart.empty' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn">{{ 'cart.continue' | t }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Cart",
+  "settings": [{ "type": "checkbox", "id": "show_note", "label": "Show order note", "default": true }]
+}
+{% endschema %}

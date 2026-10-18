@@ -1,0 +1,17 @@
+{
+  "type": "footer",
+  "name": "Footer group",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu1": { "type": "menu", "settings": { "heading": "Shop", "menu": "main-menu" } },
+        "menu2": { "type": "menu", "settings": { "heading": "Help", "menu": "footer" } },
+        "text1": { "type": "text", "settings": { "heading": "Visit us", "text": "<p>Cairo, Egypt<br>Open daily 11am – 11pm</p>" } }
+      },
+      "block_order": ["menu1", "menu2", "text1"],
+      "settings": { "show_payment": true }
+    }
+  },
+  "order": ["footer"]
+}

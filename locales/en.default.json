@@ -1,0 +1,111 @@
+{
+  "accessibility": { "skip_to_content": "Skip to content" },
+  "general": {
+    "page": "Page {{ page }}",
+    "menu": "Menu",
+    "close": "Close",
+    "search": "Search",
+    "search_placeholder": "Search for suits, shirts, shoes…",
+    "search_results": {
+      "one": "{{ count }} result for “{{ terms }}”",
+      "other": "{{ count }} results for “{{ terms }}”"
+    },
+    "view_all": "View all",
+    "follow": "Follow us",
+    "rights": "All rights reserved.",
+    "error": "Something went wrong. Please try again.",
+    "not_found": "The page you were looking for does not exist.",
+    "pause_video": "Pause video",
+    "placeholder_product": "Product name",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to bag",
+      "adding": "Adding…",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "on_sale": "Sale",
+      "price_from": "From {{ price }}",
+      "view": "View product",
+      "quantity": "Quantity",
+      "size_guide": "Size guide",
+      "description": "Details",
+      "tax_note": "Taxes included. Shipping calculated at checkout.",
+      "order_whatsapp": "Order on WhatsApp",
+      "whatsapp_message": "Hello, I would like to order:",
+      "colors_count": {
+        "one": "{{ count }} color",
+        "other": "{{ count }} colors"
+      }
+    }
+  },
+  "collections": {
+    "products_count": {
+      "one": "{{ count }} product",
+      "other": "{{ count }} products"
+    },
+    "sort_by": "Sort by",
+    "from": "From",
+    "to": "To",
+    "clear_all": "Clear all",
+    "empty": "No products found."
+  },
+  "cart": {
+    "title": "Your bag",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "view_cart": "View bag",
+    "empty": "Your bag is empty.",
+    "continue": "Continue shopping",
+    "remove": "Remove",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
+    "note": "Order note",
+    "taxes_shipping": "Taxes and shipping calculated at checkout."
+  },
+  "newsletter": {
+    "placeholder": "Your email",
+    "button": "Subscribe",
+    "success": "Thank you for subscribing."
+  },
+  "customer": {
+    "account": "Account",
+    "login": "Login",
+    "sign_in": "Sign in",
+    "log_out": "Log out",
+    "create_account": "Create account",
+    "forgot_password": "Forgot your password?",
+    "reset_password": "Reset your password",
+    "recover_success": "We've sent you an email with a link to reset your password.",
+    "guest": "Continue as guest",
+    "email": "Email",
+    "password": "Password",
+    "password_confirm": "Confirm password",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "submit": "Submit",
+    "orders": "Order history",
+    "no_orders": "You haven't placed any orders yet.",
+    "date": "Date",
+    "status": "Status",
+    "addresses": "Addresses",
+    "add_address": "Add a new address",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "phone": "Phone",
+    "default": "Default address",
+    "shipping_address": "Shipping address"
+  },
+  "password": {
+    "coming_soon": "Opening soon",
+    "enter": "Enter using password"
+  },
+  "gift_card": {
+    "title": "Your gift card",
+    "balance": "Remaining balance"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "vendor": { "type": "vendor", "settings": {} },
+        "title": { "type": "title", "settings": {} },
+        "price": { "type": "price", "settings": {} },
+        "variant_picker": { "type": "variant_picker", "settings": {} },
+        "quantity": { "type": "quantity", "settings": {} },
+        "buy_buttons": { "type": "buy_buttons", "settings": { "show_dynamic_checkout": true, "whatsapp": true } },
+        "description": { "type": "description", "settings": {} },
+        "shipping": {
+          "type": "collapsible",
+          "settings": {
+            "heading": "Shipping & returns",
+            "content": "<p>Delivery within 2–5 business days. Free exchange within 14 days.</p>"
+          }
+        },
+        "care": {
+          "type": "collapsible",
+          "settings": {
+            "heading": "Fabric & care",
+            "content": "<p>Premium Turkish & Italian fabrics. Dry clean recommended.</p>"
+          }
+        }
+      },
+      "block_order": ["vendor", "title", "price", "variant_picker", "quantity", "buy_buttons", "description", "shipping", "care"],
+      "settings": { "gallery_layout": "grid" }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": { "heading": "You may also like…", "limit": 4 }
+    }
+  },
+  "order": ["main", "related"]
+}

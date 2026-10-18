@@ -1,0 +1,17 @@
+<article class="section">
+  <div class="container container--narrow">
+    <p class="eyebrow">{{ article.published_at | date: format: 'date' }}</p>
+    <h1 class="collection__title">{{ article.title }}</h1>
+    {%- if article.image -%}
+      <div class="article__image">
+        {{ article.image | image_url: width: 1600 | image_tag: loading: 'eager', widths: '600, 1000, 1600', sizes: '(min-width: 990px) 800px, 100vw' }}
+      </div>
+    {%- endif -%}
+    <div class="rte">{{ article.content }}</div>
+    <p><a class="link-underline" href="{{ blog.url }}">← {{ blog.title }}</a></p>
+  </div>
+</article>
+
+{% schema %}
+{ "name": "Article", "settings": [] }
+{% endschema %}

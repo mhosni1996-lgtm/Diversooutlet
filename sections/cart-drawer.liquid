@@ -1,0 +1,46 @@
+<div class="cart-drawer" data-cart-drawer data-count="{{ cart.item_count }}" aria-hidden="true" role="dialog" aria-label="{{ 'cart.title' | t }}">
+  <div class="cart-drawer__head">
+    <h2 class="cart-drawer__title">{{ 'cart.title' | t }} <span>({{ cart.item_count }})</span></h2>
+    <button class="icon-btn" type="button" data-cart-close aria-label="{{ 'general.close' | t }}">
+      {% render 'icon', icon: 'close' %}
+    </button>
+  </div>
+
+  {%- if cart.item_count > 0 -%}
+    <div class="cart-drawer__items">
+      {%- for item in cart.items -%}
+        {% render 'cart-item', item: item, index: forloop.index %}
+      {%- endfor -%}
+    </div>
+    <div class="cart-drawer__foot">
+      {%- if cart.cart_level_discount_applications.size > 0 -%}
+        <ul class="cart-discounts">
+          {%- for discount in cart.cart_level_discount_applications -%}
+            <li>{{ discount.title }} (-{{ discount.total_allocated_amount | money }})</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+      <div class="cart-total">
+        <span>{{ 'cart.subtotal' | t }}</span>
+        <span data-cart-total>{{ cart.total_price | money_with_currency }}</span>
+      </div>
+      <p class="cart-note-small">{{ 'cart.taxes_shipping' | t }}</p>
+      <form action="{{ routes.cart_url }}" method="post">
+        <button type="submit" name="checkout" class="btn btn--block">{{ 'cart.checkout' | t }}</button>
+      </form>
+      <a href="{{ routes.cart_url }}" class="cart-drawer__view">{{ 'cart.view_cart' | t }}</a>
+    </div>
+  {%- else -%}
+    <div class="cart-drawer__empty">
+      <p>{{ 'cart.empty' | t }}</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn">{{ 'cart.continue' | t }}</a>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,26 @@
+{%- comment -%}
+  Renders a product price.
+  Accepts:
+  - product: {Object} product (required)
+  - variant: {Object} optional selected variant
+{%- endcomment -%}
+{%- liquid
+  assign target = variant | default: product.selected_or_first_available_variant
+  assign price = target.price
+  assign compare_at = target.compare_at_price
+  assign on_sale = false
+  if compare_at > price
+    assign on_sale = true
+  endif
+-%}
+<div class="price{% if on_sale %} price--sale{% endif %}" data-price>
+  {%- if variant == blank and product.price_varies -%}
+    {%- assign min_price = product.price_min | money -%}
+    <span class="price__current">{{ 'products.product.price_from' | t: price: min_price }}</span>
+  {%- else -%}
+    <span class="price__current">{{ price | money }}</span>
+  {%- endif -%}
+  {%- if on_sale -%}
+    <s class="price__compare">{{ compare_at | money }}</s>
+  {%- endif -%}
+</div>

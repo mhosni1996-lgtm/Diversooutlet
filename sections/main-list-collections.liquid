@@ -1,0 +1,29 @@
+<section class="section">
+  <div class="container">
+    <header class="collection__head"><h1 class="collection__title">{{ section.settings.title }}</h1></header>
+    <div class="collection-list__grid collection-list__grid--3">
+      {%- for collection in collections -%}
+        {%- if collection.products_count > 0 -%}
+          <a href="{{ collection.url }}" class="tile reveal">
+            <div class="tile__media">
+              {%- assign img = collection.featured_image | default: collection.products.first.featured_media -%}
+              {%- if img -%}
+                {{ img | image_url: width: 1000 | image_tag: loading: 'lazy', widths: '400, 700, 1000', sizes: '(min-width: 990px) 33vw, 100vw' }}
+              {%- else -%}
+                {{ 'collection-1' | placeholder_svg_tag: 'placeholder' }}
+              {%- endif -%}
+            </div>
+            <div class="tile__label"><span>{{ collection.title }}</span> {% render 'icon', icon: 'arrow' %}</div>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collections list page",
+  "settings": [{ "type": "text", "id": "title", "label": "Title", "default": "Collections" }]
+}
+{% endschema %}

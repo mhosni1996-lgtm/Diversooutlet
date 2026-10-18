@@ -1,0 +1,38 @@
+{%- comment -%}
+  Accepts:
+  - item: {Object} line item
+  - index: {Number} 1-based line number
+{%- endcomment -%}
+<div class="cart-item" data-line="{{ index }}">
+  <a href="{{ item.url }}" class="cart-item__media">
+    {%- if item.image -%}
+      {{ item.image | image_url: width: 300 | image_tag: loading: 'lazy', alt: item.product.title }}
+    {%- endif -%}
+  </a>
+  <div class="cart-item__info">
+    <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+    {%- unless item.product.has_only_default_variant -%}
+      <p class="cart-item__variant">{{ item.variant.title }}</p>
+    {%- endunless -%}
+    {%- for property in item.properties -%}
+      {%- assign first_char = property.first | slice: 0 -%}
+      {%- if property.last != blank and first_char != '_' -%}
+        <p class="cart-item__variant">{{ property.first }}: {{ property.last }}</p>
+      {%- endif -%}
+    {%- endfor -%}
+    <div class="cart-item__row">
+      <div class="qty" data-qty>
+        <button type="button" data-qty-change="{{ item.quantity | minus: 1 }}" aria-label="{{ 'cart.decrease' | t }}">{% render 'icon', icon: 'minus' %}</button>
+        <span>{{ item.quantity }}</span>
+        <button type="button" data-qty-change="{{ item.quantity | plus: 1 }}" aria-label="{{ 'cart.increase' | t }}">{% render 'icon', icon: 'plus' %}</button>
+      </div>
+      <div class="cart-item__price">
+        {%- if item.original_line_price > item.final_line_price -%}
+          <s>{{ item.original_line_price | money }}</s>
+        {%- endif -%}
+        {{ item.final_line_price | money }}
+      </div>
+    </div>
+    <button type="button" class="cart-item__remove" data-qty-change="0">{{ 'cart.remove' | t }}</button>
+  </div>
+</div>

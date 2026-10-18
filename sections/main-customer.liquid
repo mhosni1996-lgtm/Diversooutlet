@@ -1,0 +1,140 @@
+{%- comment -%}
+  One section for all classic customer account templates.
+{%- endcomment -%}
+<section class="section account">
+  <div class="container container--narrow">
+    {%- case template.name -%}
+      {%- when 'login' -%}
+        <h1 class="collection__title">{{ 'customer.login' | t }}</h1>
+        <div data-login-box>
+          {%- form 'customer_login', class: 'stack-form' -%}
+            {{ form.errors | default_errors }}
+            <input class="input" type="email" name="customer[email]" autocomplete="email" placeholder="{{ 'customer.email' | t }}" aria-label="{{ 'customer.email' | t }}" required>
+            {%- if form.password_needed -%}
+              <input class="input" type="password" name="customer[password]" autocomplete="current-password" placeholder="{{ 'customer.password' | t }}" aria-label="{{ 'customer.password' | t }}" required>
+            {%- endif -%}
+            <button type="submit" class="btn btn--block">{{ 'customer.sign_in' | t }}</button>
+            <div class="stack-form__links">
+              <a href="{{ routes.account_register_url }}">{{ 'customer.create_account' | t }}</a>
+              <a href="#recover" data-toggle-recover>{{ 'customer.forgot_password' | t }}</a>
+            </div>
+          {%- endform -%}
+        </div>
+        <div id="recover" class="account__recover" data-recover-box>
+          <h2 class="h3">{{ 'customer.reset_password' | t }}</h2>
+          {%- form 'recover_customer_password', class: 'stack-form' -%}
+            {%- if form.posted_successfully? -%}
+              <p class="form-message form-message--success">{{ 'customer.recover_success' | t }}</p>
+            {%- endif -%}
+            {{ form.errors | default_errors }}
+            <input class="input" type="email" name="email" autocomplete="email" placeholder="{{ 'customer.email' | t }}" aria-label="{{ 'customer.email' | t }}" required>
+            <button type="submit" class="btn btn--outline btn--block">{{ 'customer.submit' | t }}</button>
+          {%- endform -%}
+        </div>
+        {%- if shop.checkout.guest_login -%}
+          {%- form 'guest_login', class: 'stack-form' -%}
+            <button type="submit" class="btn btn--outline btn--block">{{ 'customer.guest' | t }}</button>
+          {%- endform -%}
+        {%- endif -%}
+
+      {%- when 'register' -%}
+        <h1 class="collection__title">{{ 'customer.create_account' | t }}</h1>
+        {%- form 'create_customer', class: 'stack-form' -%}
+          {{ form.errors | default_errors }}
+          <input class="input" type="text" name="customer[first_name]" autocomplete="given-name" placeholder="{{ 'customer.first_name' | t }}" aria-label="{{ 'customer.first_name' | t }}">
+          <input class="input" type="text" name="customer[last_name]" autocomplete="family-name" placeholder="{{ 'customer.last_name' | t }}" aria-label="{{ 'customer.last_name' | t }}">
+          <input class="input" type="email" name="customer[email]" autocomplete="email" placeholder="{{ 'customer.email' | t }}" aria-label="{{ 'customer.email' | t }}" required>
+          <input class="input" type="password" name="customer[password]" autocomplete="new-password" placeholder="{{ 'customer.password' | t }}" aria-label="{{ 'customer.password' | t }}" required>
+          <button type="submit" class="btn btn--block">{{ 'customer.create_account' | t }}</button>
+        {%- endform -%}
+
+      {%- when 'activate_account', 'reset_password' -%}
+        <h1 class="collection__title">{{ 'customer.reset_password' | t }}</h1>
+        {%- assign form_type = 'reset_customer_password' -%}
+        {%- if template.name == 'activate_account' -%}{%- assign form_type = 'activate_customer_password' -%}{%- endif -%}
+        {%- form form_type, class: 'stack-form' -%}
+          {{ form.errors | default_errors }}
+          <input class="input" type="password" name="customer[password]" autocomplete="new-password" placeholder="{{ 'customer.password' | t }}" aria-label="{{ 'customer.password' | t }}" required>
+          <input class="input" type="password" name="customer[password_confirmation]" autocomplete="new-password" placeholder="{{ 'customer.password_confirm' | t }}" aria-label="{{ 'customer.password_confirm' | t }}" required>
+          <button type="submit" class="btn btn--block">{{ 'customer.submit' | t }}</button>
+        {%- endform -%}
+
+      {%- when 'account' -%}
+        <h1 class="collection__title">{{ 'customer.account' | t }}</h1>
+        <p>{{ customer.first_name }} {{ customer.last_name }} — {{ customer.email }}</p>
+        <p><a class="link-underline" href="{{ routes.account_addresses_url }}">{{ 'customer.addresses' | t }} ({{ customer.addresses_count }})</a> · <a class="link-underline" href="{{ routes.account_logout_url }}">{{ 'customer.log_out' | t }}</a></p>
+        <h2 class="h3">{{ 'customer.orders' | t }}</h2>
+        {%- paginate customer.orders by 20 -%}
+          {%- if customer.orders.size > 0 -%}
+            <table class="table">
+              <thead><tr><th>#</th><th>{{ 'customer.date' | t }}</th><th>{{ 'customer.status' | t }}</th><th>{{ 'cart.subtotal' | t }}</th></tr></thead>
+              <tbody>
+                {%- for order in customer.orders -%}
+                  <tr>
+                    <td><a href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                    <td>{{ order.created_at | date: format: 'date' }}</td>
+                    <td>{{ order.fulfillment_status_label }}</td>
+                    <td>{{ order.total_price | money }}</td>
+                  </tr>
+                {%- endfor -%}
+              </tbody>
+            </table>
+          {%- else -%}
+            <p>{{ 'customer.no_orders' | t }}</p>
+          {%- endif -%}
+          {% render 'pagination', paginate: paginate %}
+        {%- endpaginate -%}
+
+      {%- when 'order' -%}
+        <h1 class="collection__title">{{ order.name }}</h1>
+        <p>{{ order.created_at | date: format: 'date' }} — {{ order.financial_status_label }} / {{ order.fulfillment_status_label }}</p>
+        <table class="table">
+          <tbody>
+            {%- for line_item in order.line_items -%}
+              <tr>
+                <td><a href="{{ line_item.product.url }}">{{ line_item.title }}</a></td>
+                <td>× {{ line_item.quantity }}</td>
+                <td>{{ line_item.final_line_price | money }}</td>
+              </tr>
+            {%- endfor -%}
+          </tbody>
+          <tfoot><tr><td colspan="2">{{ 'cart.subtotal' | t }}</td><td>{{ order.total_price | money }}</td></tr></tfoot>
+        </table>
+        {%- if order.shipping_address -%}
+          <h2 class="h3">{{ 'customer.shipping_address' | t }}</h2>
+          {{ order.shipping_address | format_address }}
+        {%- endif -%}
+        <p><a class="link-underline" href="{{ routes.account_url }}">← {{ 'customer.account' | t }}</a></p>
+
+      {%- when 'addresses' -%}
+        <h1 class="collection__title">{{ 'customer.addresses' | t }}</h1>
+        {%- for address in customer.addresses -%}
+          <div class="account__address">
+            {{ address | format_address }}
+            {%- if address == customer.default_address -%}<p><em>{{ 'customer.default' | t }}</em></p>{%- endif -%}
+            <form method="post" action="{{ routes.account_addresses_url }}/{{ address.id }}">
+              <input type="hidden" name="_method" value="delete">
+              <button type="submit" class="link-underline">{{ 'cart.remove' | t }}</button>
+            </form>
+          </div>
+        {%- endfor -%}
+        <h2 class="h3">{{ 'customer.add_address' | t }}</h2>
+        {%- form 'customer_address', customer.new_address, class: 'stack-form' -%}
+          {{ form.errors | default_errors }}
+          <input class="input" name="address[first_name]" placeholder="{{ 'customer.first_name' | t }}" aria-label="{{ 'customer.first_name' | t }}" autocomplete="given-name">
+          <input class="input" name="address[last_name]" placeholder="{{ 'customer.last_name' | t }}" aria-label="{{ 'customer.last_name' | t }}" autocomplete="family-name">
+          <input class="input" name="address[address1]" placeholder="{{ 'customer.address' | t }}" aria-label="{{ 'customer.address' | t }}" autocomplete="address-line1">
+          <input class="input" name="address[city]" placeholder="{{ 'customer.city' | t }}" aria-label="{{ 'customer.city' | t }}" autocomplete="address-level2">
+          <select class="select" name="address[country]" aria-label="{{ 'customer.country' | t }}">{{ all_country_option_tags }}</select>
+          <input class="input" name="address[phone]" type="tel" placeholder="{{ 'customer.phone' | t }}" aria-label="{{ 'customer.phone' | t }}" autocomplete="tel">
+          <label class="filter__check"><input type="checkbox" name="address[default]" value="1"> <span>{{ 'customer.default' | t }}</span></label>
+          <button type="submit" class="btn btn--block">{{ 'customer.submit' | t }}</button>
+        {%- endform -%}
+        <p><a class="link-underline" href="{{ routes.account_url }}">← {{ 'customer.account' | t }}</a></p>
+    {%- endcase -%}
+  </div>
+</section>
+
+{% schema %}
+{ "name": "Customer account", "settings": [] }
+{% endschema %}

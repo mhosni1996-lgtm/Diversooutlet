@@ -1,0 +1,170 @@
+{%- liquid
+  assign transparent = false
+  if section.settings.transparent_on_home and template.name == 'index'
+    assign transparent = true
+  endif
+-%}
+{%- if section.settings.announcement != blank -%}
+  <div class="announcement">
+    <div class="announcement__track">
+      {%- for i in (1..6) -%}
+        <span>{{ section.settings.announcement }}</span>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+<header
+  class="header{% if transparent %} header--transparent{% endif %}"
+  data-header
+  {% if transparent %}data-transparent{% endif %}
+>
+  <div class="header__inner">
+    <div class="header__left">
+      <button class="icon-btn header__menu-btn" type="button" data-menu-open aria-label="{{ 'general.menu' | t }}">
+        {% render 'icon', icon: 'menu' %}
+      </button>
+      <nav class="header__nav" aria-label="{{ 'general.menu' | t }}">
+        <ul>
+          {%- for link in section.settings.menu.links -%}
+            <li class="header__nav-item{% if link.links != blank %} has-dropdown{% endif %}">
+              <a href="{{ link.url }}" class="header__link{% if link.active %} is-active{% endif %}">{{ link.title }}</a>
+              {%- if link.links != blank -%}
+                <div class="dropdown">
+                  <ul>
+                    {%- for child in link.links -%}
+                      <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    </div>
+
+    <a href="{{ routes.root_url }}" class="header__logo" aria-label="{{ shop.name }}">
+      {%- if section.settings.logo != blank -%}
+        {%- assign logo_height = section.settings.logo_width | times: section.settings.logo.height | divided_by: section.settings.logo.width -%}
+        {{
+          section.settings.logo
+          | image_url: width: 600
+          | image_tag:
+            class: 'header__logo-img',
+            width: section.settings.logo_width,
+            height: logo_height,
+            alt: shop.name,
+            loading: 'eager'
+        }}
+      {%- else -%}
+        <span class="header__logo-text">{{ shop.name }}</span>
+      {%- endif -%}
+    </a>
+
+    <div class="header__right">
+      {%- if section.settings.show_localization -%}
+        {%- if localization.available_languages.size > 1 -%}
+          {%- form 'localization', class: 'header__lang' -%}
+            {%- for language in localization.available_languages -%}
+              {%- unless language.iso_code == localization.language.iso_code -%}
+                <button class="header__link header__lang-btn" type="submit" name="language_code" value="{{ language.iso_code }}">
+                  {%- if language.iso_code == 'ar' -%}عربي{%- else -%}{{ language.iso_code | upcase }}{%- endif -%}
+                </button>
+              {%- endunless -%}
+            {%- endfor -%}
+          {%- endform -%}
+        {%- endif -%}
+      {%- endif -%}
+      <a href="{{ routes.search_url }}" class="icon-btn" aria-label="{{ 'general.search' | t }}" data-search-open>
+        {% render 'icon', icon: 'search' %}
+      </a>
+      {%- if shop.customer_accounts_enabled -%}
+        <a href="{{ routes.account_url }}" class="icon-btn header__account" aria-label="{{ 'customer.account' | t }}">
+          {% render 'icon', icon: 'account' %}
+        </a>
+      {%- endif -%}
+      <a href="{{ routes.cart_url }}" class="icon-btn header__cart" aria-label="{{ 'cart.title' | t }}" data-cart-open>
+        {% render 'icon', icon: 'bag' %}
+        <span class="cart-count{% if cart.item_count == 0 %} is-empty{% endif %}" data-cart-count>{{ cart.item_count }}</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="search-bar" data-search-bar>
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search-bar__form">
+      <input type="hidden" name="type" value="product">
+      <input
+        class="search-bar__input"
+        type="search"
+        name="q"
+        placeholder="{{ 'general.search_placeholder' | t }}"
+        aria-label="{{ 'general.search' | t }}"
+        autocomplete="off"
+      >
+      <button type="button" class="icon-btn" data-search-close aria-label="{{ 'general.close' | t }}">
+        {% render 'icon', icon: 'close' %}
+      </button>
+    </form>
+  </div>
+</header>
+
+<div class="menu-drawer" data-menu-drawer aria-hidden="true">
+  <div class="menu-drawer__head">
+    <span class="menu-drawer__brand">{{ shop.name }}</span>
+    <button class="icon-btn" type="button" data-menu-close aria-label="{{ 'general.close' | t }}">
+      {% render 'icon', icon: 'close' %}
+    </button>
+  </div>
+  <nav class="menu-drawer__nav">
+    <ul>
+      {%- for link in section.settings.menu.links -%}
+        <li>
+          {%- if link.links != blank -%}
+            <details>
+              <summary class="menu-drawer__link">{{ link.title }} {% render 'icon', icon: 'plus' %}</summary>
+              <ul class="menu-drawer__sub">
+                <li><a href="{{ link.url }}">{{ 'general.view_all' | t }}</a></li>
+                {%- for child in link.links -%}
+                  <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            </details>
+          {%- else -%}
+            <a href="{{ link.url }}" class="menu-drawer__link">{{ link.title }}</a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+  <div class="menu-drawer__foot">
+    {%- if shop.customer_accounts_enabled -%}
+      <a href="{{ routes.account_url }}">{{ 'customer.account' | t }}</a>
+    {%- endif -%}
+    {%- if localization.available_languages.size > 1 -%}
+      {%- form 'localization' -%}
+        {%- for language in localization.available_languages -%}
+          <button type="submit" name="language_code" value="{{ language.iso_code }}" class="menu-drawer__lang{% if language.iso_code == localization.language.iso_code %} is-active{% endif %}">
+            {{- language.endonym_name | capitalize -}}
+          </button>
+        {%- endfor -%}
+      {%- endform -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Header",
+  "class": "section-header",
+  "enabled_on": { "groups": ["header"] },
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 60, "max": 300, "step": 10, "unit": "px", "default": 140 },
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
+    { "type": "text", "id": "announcement", "label": "Announcement bar text", "default": "Free shipping on orders over 3000 EGP — Made in Turkey & Italy" },
+    { "type": "checkbox", "id": "transparent_on_home", "label": "Transparent header over home hero", "default": true },
+    { "type": "checkbox", "id": "show_localization", "label": "Show language switcher", "default": true }
+  ]
+}
+{% endschema %}

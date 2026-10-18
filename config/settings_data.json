@@ -1,0 +1,24 @@
+{
+  "current": "Default",
+  "presets": {
+    "Default": {
+      "color_background": "#F5F3EF",
+      "color_background_alt": "#E9E3D8",
+      "color_text": "#141414",
+      "color_accent": "#A8875A",
+      "color_button": "#141414",
+      "color_button_text": "#F5F3EF",
+      "color_dark": "#0E0E0E",
+      "color_sale": "#9B2C2C",
+      "page_width": 1600,
+      "button_radius": 0,
+      "show_intro": true,
+      "custom_cursor": true,
+      "card_hover_image": true,
+      "card_show_vendor": false,
+      "card_show_swatches": true,
+      "cart_type": "drawer",
+      "whatsapp_message": "Hello, I have a question about your products"
+    }
+  }
+}

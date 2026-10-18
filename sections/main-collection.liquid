@@ -1,0 +1,124 @@
+<section class="section collection" data-collection>
+  <div class="container">
+    <header class="collection__head">
+      <h1 class="collection__title">{{ collection.title | default: section.settings.fallback_title }}</h1>
+      {%- if section.settings.show_description and collection.description != blank -%}
+        <div class="rte collection__desc">{{ collection.description }}</div>
+      {%- endif -%}
+    </header>
+
+    {%- paginate collection.products by section.settings.per_page -%}
+      <form class="toolbar" data-filter-form>
+        <div class="toolbar__filters">
+          {%- if section.settings.enable_filters -%}
+            {%- for filter in collection.filters -%}
+              <details class="filter">
+                <summary class="filter__summary">
+                  {{ filter.label }}
+                  {%- if filter.active_values.size > 0 -%} ({{ filter.active_values.size }}){%- endif -%}
+                  {% render 'icon', icon: 'plus' %}
+                </summary>
+                <div class="filter__panel">
+                  {%- case filter.type -%}
+                    {%- when 'list', 'boolean' -%}
+                      {%- for value in filter.values -%}
+                        <label class="filter__check{% if value.count == 0 and value.active == false %} is-disabled{% endif %}">
+                          <input
+                            type="checkbox"
+                            name="{{ value.param_name }}"
+                            value="{{ value.value }}"
+                            {% if value.active %}checked{% endif %}
+                            {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                          >
+                          <span>{{ value.label }}</span>
+                          <small>{{ value.count }}</small>
+                        </label>
+                      {%- endfor -%}
+                    {%- when 'price_range' -%}
+                      <div class="filter__price">
+                        <input type="number" name="{{ filter.min_value.param_name }}" placeholder="0"
+                          {% if filter.min_value.value %}value="{{ filter.min_value.value | money_without_currency | remove: ',' }}"{% endif %}
+                          aria-label="{{ 'collections.from' | t }}">
+                        <span>—</span>
+                        <input type="number" name="{{ filter.max_value.param_name }}" placeholder="{{ filter.range_max | money_without_currency | remove: ',' }}"
+                          {% if filter.max_value.value %}value="{{ filter.max_value.value | money_without_currency | remove: ',' }}"{% endif %}
+                          aria-label="{{ 'collections.to' | t }}">
+                      </div>
+                  {%- endcase -%}
+                </div>
+              </details>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+        <div class="toolbar__right">
+          <span class="toolbar__count">{{ 'collections.products_count' | t: count: collection.products_count }}</span>
+          {%- if section.settings.enable_sorting -%}
+            {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+            <label class="visually-hidden" for="SortBy">{{ 'collections.sort_by' | t }}</label>
+            <select name="sort_by" id="SortBy" class="select">
+              {%- for option in collection.sort_options -%}
+                <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>{{ option.name }}</option>
+              {%- endfor -%}
+            </select>
+          {%- endif -%}
+        </div>
+      </form>
+
+      {%- liquid
+        assign active_count = 0
+        for filter in collection.filters
+          assign active_count = active_count | plus: filter.active_values.size
+          if filter.type == 'price_range'
+            if filter.min_value.value != nil or filter.max_value.value != nil
+              assign active_count = active_count | plus: 1
+            endif
+          endif
+        endfor
+      -%}
+      {%- if active_count > 0 -%}
+        <div class="active-filters">
+          {%- for filter in collection.filters -%}
+            {%- for value in filter.active_values -%}
+              <a href="{{ value.url_to_remove }}" class="chip">{{ value.label }} {% render 'icon', icon: 'close' %}</a>
+            {%- endfor -%}
+          {%- endfor -%}
+          <a href="{{ collection.url }}?sort_by={{ collection.sort_by }}" class="link-underline">{{ 'collections.clear_all' | t }}</a>
+        </div>
+      {%- endif -%}
+
+      {%- if collection.products.size > 0 -%}
+        <div class="grid grid--{{ section.settings.columns }}">
+          {%- for product in collection.products -%}
+            {%- if forloop.index <= 4 -%}
+              {% render 'product-card', product: product, lazy: false %}
+            {%- else -%}
+              {% render 'product-card', product: product %}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+        <div class="empty-state">
+          <p>{{ 'collections.empty' | t }}</p>
+          <a href="{{ collection.url }}" class="btn btn--outline">{{ 'collections.clear_all' | t }}</a>
+        </div>
+      {%- endif -%}
+
+      {% render 'pagination', paginate: paginate %}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "settings": [
+    { "type": "text", "id": "fallback_title", "label": "Fallback title", "default": "Catalog" },
+    { "type": "range", "id": "per_page", "label": "Products per page", "min": 8, "max": 48, "step": 4, "default": 24 },
+    { "type": "range", "id": "columns", "label": "Columns (desktop)", "min": 2, "max": 5, "step": 1, "default": 4 },
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
+    { "type": "checkbox", "id": "enable_filters", "label": "Enable filters", "default": true },
+    { "type": "checkbox", "id": "enable_sorting", "label": "Enable sorting", "default": true }
+  ]
+}
+{% endschema %}

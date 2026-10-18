@@ -1,0 +1,35 @@
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ 'gift_card.title' | t }} — {{ shop.name }}</title>
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'vendor/qrcode.js' | shopify_asset_url }}" defer></script>
+    {{ content_for_header }}
+  </head>
+  <body class="template-gift-card">
+    <main class="password">
+      <div class="password__inner">
+        <p class="eyebrow">{{ shop.name }}</p>
+        <h1 class="display">{{ gift_card.initial_value | money }}</h1>
+        {%- if gift_card.balance != gift_card.initial_value -%}
+          <p>{{ 'gift_card.balance' | t }}: {{ gift_card.balance | money }}</p>
+        {%- endif -%}
+        <p class="gift-code">{{ gift_card.code | format_code }}</p>
+        <div id="QrCode" data-identifier="{{ gift_card.qr_identifier }}"></div>
+        {%- if gift_card.pass_url -%}
+          <a href="{{ gift_card.pass_url }}"><img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" width="120" height="40" alt="Apple Wallet" loading="lazy"></a>
+        {%- endif -%}
+        <p><a href="{{ shop.url }}" class="btn btn--light">{{ 'cart.continue' | t }}</a></p>
+      </div>
+    </main>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var el = document.getElementById('QrCode');
+        if (window.QRCode && el) new QRCode(el, { text: el.dataset.identifier, width: 140, height: 140 });
+      });
+    </script>
+  </body>
+</html>

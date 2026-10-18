@@ -1,0 +1,78 @@
+{%- comment -%}
+  Rotating "hero product" spotlight — big product name on one side,
+  model photo in the middle, next product peeking in on the other side.
+{%- endcomment -%}
+<section class="spotlight section" data-spotlight data-interval="{{ section.settings.interval | times: 1000 }}">
+  <div class="spotlight__slides">
+    {%- for block in section.blocks -%}
+      {%- assign p = block.settings.product -%}
+      <div class="spotlight__slide{% if forloop.first %} is-active{% endif %}" data-slide {{ block.shopify_attributes }}>
+        <div class="spotlight__text">
+          {%- if block.settings.label != blank -%}
+            <p class="spotlight__label">{{ block.settings.label }}</p>
+          {%- endif -%}
+          <h2 class="spotlight__title">
+            {%- if block.settings.title != blank -%}
+              {{ block.settings.title }}
+            {%- elsif p != blank -%}
+              {{ p.title }}
+            {%- else -%}
+              {{ 'general.placeholder_product' | t }}
+            {%- endif -%}
+          </h2>
+          {%- if p != blank -%}
+            {% render 'price', product: p %}
+            <a href="{{ p.url }}" class="link-arrow">{{ 'products.product.view' | t }} {% render 'icon', icon: 'arrow' %}</a>
+          {%- endif -%}
+        </div>
+        <a href="{{ p.url | default: '#' }}" class="spotlight__media">
+          {%- if block.settings.image != blank -%}
+            {{ block.settings.image | image_url: width: 1400 | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 40vw, 80vw', widths: '600, 900, 1200, 1400', class: 'spotlight__img' }}
+          {%- elsif p.featured_media -%}
+            {{ p.featured_media | image_url: width: 1400 | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 40vw, 80vw', widths: '600, 900, 1200, 1400', class: 'spotlight__img' }}
+          {%- else -%}
+            {{ 'apparel-3' | placeholder_svg_tag: 'spotlight__img placeholder' }}
+          {%- endif -%}
+        </a>
+      </div>
+    {%- endfor -%}
+  </div>
+
+  {%- if section.blocks.size > 1 -%}
+    <div class="spotlight__nav">
+      {%- for block in section.blocks -%}
+        <button type="button" class="spotlight__dot{% if forloop.first %} is-active{% endif %}" data-dot="{{ forloop.index0 }}" aria-label="{{ forloop.index }}">
+          <span></span>
+        </button>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Product spotlight",
+  "settings": [
+    { "type": "range", "id": "interval", "label": "Auto-rotate (seconds)", "min": 3, "max": 12, "step": 1, "default": 5 }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "text", "id": "label", "label": "Small label", "default": "New in" },
+        { "type": "text", "id": "title", "label": "Custom big title", "info": "Optional — e.g. “OFF GRID” Heavyweight Zip Jacket" },
+        { "type": "image_picker", "id": "image", "label": "Custom model photo", "info": "Transparent PNG of the model looks best." }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Product spotlight",
+      "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }]
+    }
+  ]
+}
+{% endschema %}

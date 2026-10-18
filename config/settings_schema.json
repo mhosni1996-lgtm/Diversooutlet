@@ -1,0 +1,74 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Diverso",
+    "theme_version": "1.0.0",
+    "theme_author": "Diverso Outlet",
+    "theme_documentation_url": "https://github.com/mhosni1996-lgtm/Diversooutlet",
+    "theme_support_url": "https://github.com/mhosni1996-lgtm/Diversooutlet"
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      { "type": "color", "id": "color_background", "label": "Background", "default": "#F5F3EF" },
+      { "type": "color", "id": "color_background_alt", "label": "Secondary background (beige)", "default": "#E9E3D8" },
+      { "type": "color", "id": "color_text", "label": "Text", "default": "#141414" },
+      { "type": "color", "id": "color_accent", "label": "Accent (gold)", "default": "#A8875A" },
+      { "type": "color", "id": "color_button", "label": "Button", "default": "#141414" },
+      { "type": "color", "id": "color_button_text", "label": "Button text", "default": "#F5F3EF" },
+      { "type": "color", "id": "color_dark", "label": "Dark sections", "default": "#0E0E0E" },
+      { "type": "color", "id": "color_sale", "label": "Sale", "default": "#9B2C2C" }
+    ]
+  },
+  {
+    "name": "Layout",
+    "settings": [
+      { "type": "range", "id": "page_width", "label": "Page width", "min": 1000, "max": 1800, "step": 100, "unit": "px", "default": 1600 },
+      { "type": "range", "id": "button_radius", "label": "Button corner radius", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 0 },
+      { "type": "image_picker", "id": "favicon", "label": "Favicon" }
+    ]
+  },
+  {
+    "name": "Animations",
+    "settings": [
+      { "type": "checkbox", "id": "show_intro", "label": "Show logo intro on home page", "default": true },
+      { "type": "text", "id": "intro_text", "label": "Intro text", "info": "Defaults to the store name." },
+      { "type": "checkbox", "id": "custom_cursor", "label": "Custom cursor (desktop)", "default": true }
+    ]
+  },
+  {
+    "name": "Product cards",
+    "settings": [
+      { "type": "checkbox", "id": "card_hover_image", "label": "Show second image on hover", "default": true },
+      { "type": "checkbox", "id": "card_show_vendor", "label": "Show vendor", "default": false },
+      { "type": "checkbox", "id": "card_show_swatches", "label": "Show colors count", "default": true }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select", "id": "cart_type", "label": "Cart type", "default": "drawer",
+        "options": [
+          { "value": "drawer", "label": "Drawer" },
+          { "value": "page", "label": "Page" }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "WhatsApp",
+    "settings": [
+      { "type": "text", "id": "whatsapp_number", "label": "WhatsApp number", "info": "International format, e.g. 201001234567" },
+      { "type": "text", "id": "whatsapp_message", "label": "Default message", "default": "Hello, I have a question about your products" }
+    ]
+  },
+  {
+    "name": "Social media",
+    "settings": [
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_facebook", "label": "Facebook" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok" }
+    ]
+  }
+]

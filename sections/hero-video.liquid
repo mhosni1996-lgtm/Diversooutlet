@@ -1,0 +1,100 @@
+{%- liquid
+  assign heading = section.settings.heading | default: shop.name
+-%}
+<section class="hero hero--{{ section.settings.height }}" data-hero style="--hero-overlay: {{ section.settings.overlay | divided_by: 100.0 }};">
+  <div class="hero__media" data-parallax>
+    {%- if section.settings.video != blank -%}
+      {{
+        section.settings.video
+        | video_tag:
+          autoplay: true,
+          loop: true,
+          muted: true,
+          playsinline: true,
+          controls: false,
+          class: 'hero__video',
+          image_size: '1920x'
+      }}
+    {%- elsif section.settings.video_url != blank -%}
+      <video class="hero__video" autoplay muted loop playsinline preload="metadata"
+        {% if section.settings.image != blank %}poster="{{ section.settings.image | image_url: width: 1920 }}"{% endif %}
+      >
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      </video>
+    {%- elsif section.settings.image != blank -%}
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag:
+          class: 'hero__img',
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '750, 1100, 1500, 1920, 2400',
+          sizes: '100vw'
+      }}
+    {%- else -%}
+      {{ 'lifestyle-2' | placeholder_svg_tag: 'hero__img placeholder placeholder--dark' }}
+    {%- endif -%}
+  </div>
+
+  <div class="hero__content hero__content--{{ section.settings.align }}">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="hero__eyebrow" data-split>{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <h1 class="hero__title{% if section.settings.blend %} hero__title--blend{% endif %}" data-split-chars>{{ heading }}</h1>
+    {%- if section.settings.subheading != blank -%}
+      <p class="hero__sub">{{ section.settings.subheading }}</p>
+    {%- endif -%}
+    {%- if section.settings.button_label != blank -%}
+      <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="btn btn--light hero__btn">
+        <span>{{ section.settings.button_label }}</span>
+        {% render 'icon', icon: 'arrow' %}
+      </a>
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.video != blank or section.settings.video_url != blank -%}
+    <button class="hero__toggle icon-btn" type="button" data-video-toggle aria-label="{{ 'general.pause_video' | t }}">
+      <span class="hero__toggle-pause">{% render 'icon', icon: 'pause' %}</span>
+      <span class="hero__toggle-play">{% render 'icon', icon: 'play' %}</span>
+    </button>
+  {%- endif -%}
+
+  <div class="hero__scroll" aria-hidden="true"><span></span></div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero video",
+  "tag": "div",
+  "class": "section-hero",
+  "settings": [
+    { "type": "video", "id": "video", "label": "Video (upload to Shopify)", "info": "Short, muted fashion film — 10–20s loop works best." },
+    { "type": "url", "id": "video_url", "label": "Or external MP4 link" },
+    { "type": "image_picker", "id": "image", "label": "Image (fallback / poster)" },
+    { "type": "text", "id": "eyebrow", "label": "Small text", "default": "Turkish & Italian Menswear" },
+    { "type": "text", "id": "heading", "label": "Big title", "info": "Leave empty to use the store name." },
+    { "type": "text", "id": "subheading", "label": "Subheading", "default": "New season collection" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the collection" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    {
+      "type": "select", "id": "align", "label": "Content position", "default": "center",
+      "options": [
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    {
+      "type": "select", "id": "height", "label": "Height", "default": "full",
+      "options": [
+        { "value": "full", "label": "Full screen" },
+        { "value": "large", "label": "Large" },
+        { "value": "medium", "label": "Medium" }
+      ]
+    },
+    { "type": "range", "id": "overlay", "label": "Dark overlay", "min": 0, "max": 80, "step": 5, "unit": "%", "default": 25 },
+    { "type": "checkbox", "id": "blend", "label": "Blend title with video (difference)", "default": false }
+  ],
+  "presets": [{ "name": "Hero video" }]
+}
+{% endschema %}

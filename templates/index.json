@@ -1,0 +1,107 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-video",
+      "settings": {
+        "eyebrow": "Turkish & Italian Menswear",
+        "heading": "",
+        "subheading": "New season collection",
+        "button_label": "Shop the collection",
+        "align": "center",
+        "height": "full",
+        "overlay": 25,
+        "blend": false
+      }
+    },
+    "marquee": {
+      "type": "marquee",
+      "blocks": {
+        "m1": { "type": "text", "settings": { "text": "Made in Italy" } },
+        "m2": { "type": "text", "settings": { "text": "Crafted in Istanbul" } },
+        "m3": { "type": "text", "settings": { "text": "Premium fabrics" } },
+        "m4": { "type": "text", "settings": { "text": "Tailored fit" } }
+      },
+      "block_order": ["m1", "m2", "m3", "m4"],
+      "settings": { "style": "dark", "speed": 35 }
+    },
+    "spotlight": {
+      "type": "product-spotlight",
+      "blocks": {
+        "s1": { "type": "product", "settings": { "label": "New in" } },
+        "s2": { "type": "product", "settings": { "label": "Best seller" } },
+        "s3": { "type": "product", "settings": { "label": "Limited" } }
+      },
+      "block_order": ["s1", "s2", "s3"],
+      "settings": { "interval": 5 }
+    },
+    "featured": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "New arrivals",
+        "heading": "Catalog",
+        "limit": 8,
+        "columns": 4,
+        "slider_mobile": true,
+        "show_view_all": true
+      }
+    },
+    "collage": {
+      "type": "collage",
+      "blocks": {
+        "c1": { "type": "image", "settings": {} },
+        "c2": { "type": "image", "settings": {} },
+        "c3": { "type": "image", "settings": {} },
+        "c4": { "type": "image", "settings": {} },
+        "c5": { "type": "image", "settings": {} },
+        "c6": { "type": "image", "settings": {} }
+      },
+      "block_order": ["c1", "c2", "c3", "c4", "c5", "c6"],
+      "settings": { "heading": "The Lookbook", "link_label": "Discover" }
+    },
+    "categories": {
+      "type": "collection-list",
+      "blocks": {
+        "k1": { "type": "collection", "settings": { "title": "Suits" } },
+        "k2": { "type": "collection", "settings": { "title": "Shirts" } },
+        "k3": { "type": "collection", "settings": { "title": "Outerwear" } }
+      },
+      "block_order": ["k1", "k2", "k3"],
+      "settings": { "heading": "Shop by category" }
+    },
+    "cards": {
+      "type": "floating-cards",
+      "blocks": {
+        "f1": { "type": "card", "settings": { "title": "Suits" } },
+        "f2": { "type": "card", "settings": { "title": "Knitwear" } },
+        "f3": { "type": "card", "settings": { "title": "Outerwear" } },
+        "f4": { "type": "card", "settings": { "title": "Shirts" } },
+        "f5": { "type": "card", "settings": { "title": "Shoes" } }
+      },
+      "block_order": ["f1", "f2", "f3", "f4", "f5"],
+      "settings": {
+        "eyebrow": "Capsule",
+        "heading": "The Signature Edit",
+        "button_label": "Explore the edit"
+      }
+    },
+    "story": {
+      "type": "image-with-text",
+      "settings": {
+        "eyebrow": "Our story",
+        "heading": "Between Istanbul and Milan",
+        "text": "<p>Every piece is selected from the finest Turkish ateliers and Italian mills — refined cuts, premium fabrics and timeless details for the modern gentleman.</p>",
+        "button_label": "Discover",
+        "reverse": false,
+        "theme": "alt"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "heading": "Join the club",
+        "text": "<p>Be the first to know about new arrivals, private sales and exclusive drops.</p>"
+      }
+    }
+  },
+  "order": ["hero", "marquee", "spotlight", "featured", "collage", "categories", "cards", "story", "newsletter"]
+}

@@ -1,0 +1,30 @@
+{%- style -%}
+  :root {
+    --color-bg: {{ settings.color_background }};
+    --color-bg-alt: {{ settings.color_background_alt }};
+    --color-text: {{ settings.color_text }};
+    --color-muted: {{ settings.color_text | color_mix: settings.color_background, 55 }};
+    --color-line: {{ settings.color_text | color_mix: settings.color_background, 14 }};
+    --color-accent: {{ settings.color_accent }};
+    --color-button: {{ settings.color_button }};
+    --color-button-text: {{ settings.color_button_text }};
+    --color-dark: {{ settings.color_dark }};
+    --color-sale: {{ settings.color_sale }};
+
+    --font-heading: 'Cormorant Garamond', 'Noto Kufi Arabic', Georgia, serif;
+    --font-body: 'Inter', 'Noto Kufi Arabic', -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Inter', 'Noto Kufi Arabic', sans-serif;
+
+    --page-width: {{ settings.page_width }}px;
+    --gutter: clamp(16px, 3vw, 40px);
+    --radius: {{ settings.button_radius }}px;
+    --header-height: 72px;
+    --ease: cubic-bezier(.2, .7, .1, 1);
+  }
+
+  html[dir='rtl'] {
+    --font-heading: 'Noto Kufi Arabic', 'Cormorant Garamond', serif;
+    --font-body: 'Noto Kufi Arabic', 'Inter', sans-serif;
+    --font-display: 'Noto Kufi Arabic', 'Inter', sans-serif;
+  }
+{%- endstyle -%}

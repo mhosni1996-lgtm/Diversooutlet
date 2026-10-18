@@ -1,0 +1,90 @@
+{%- comment -%}
+  Product card used in grids and sliders.
+  Accepts:
+  - product: {Object} (required, may be blank for placeholders)
+  - index: {Number} used for placeholder images
+  - lazy: {Boolean} lazy load images, defaults to true
+{%- endcomment -%}
+{%- liquid
+  assign loading = 'lazy'
+  if lazy == false
+    assign loading = 'eager'
+  endif
+-%}
+{%- if product != blank -%}
+  {%- liquid
+    assign second_image = product.media[1]
+    assign card_alt = product.featured_media.alt | default: product.title
+    assign on_sale = false
+    if product.compare_at_price > product.price
+      assign on_sale = true
+    endif
+  -%}
+  <article class="card reveal">
+    <a href="{{ product.url }}" class="card__media{% if second_image and settings.card_hover_image %} card__media--swap{% endif %}">
+      {%- if product.featured_media -%}
+        {{
+          product.featured_media
+          | image_url: width: 900
+          | image_tag:
+            loading: loading,
+            widths: '360, 540, 720, 900',
+            sizes: '(min-width: 990px) 25vw, 50vw',
+            class: 'card__img card__img--main',
+            alt: card_alt
+        }}
+        {%- if second_image and settings.card_hover_image -%}
+          {{
+            second_image
+            | image_url: width: 900
+            | image_tag:
+              loading: 'lazy',
+              widths: '360, 540, 720, 900',
+              sizes: '(min-width: 990px) 25vw, 50vw',
+              class: 'card__img card__img--alt',
+              alt: card_alt
+          }}
+        {%- endif -%}
+      {%- else -%}
+        {{ 'apparel-1' | placeholder_svg_tag: 'card__img placeholder' }}
+      {%- endif -%}
+      <span class="card__badges">
+        {%- unless product.available -%}
+          <span class="badge">{{ 'products.product.sold_out' | t }}</span>
+        {%- elsif on_sale -%}
+          <span class="badge badge--sale">{{ 'products.product.on_sale' | t }}</span>
+        {%- endunless -%}
+      </span>
+    </a>
+    <div class="card__info">
+      {%- if settings.card_show_vendor and product.vendor != blank -%}
+        <p class="card__vendor">{{ product.vendor }}</p>
+      {%- endif -%}
+      <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+      {% render 'price', product: product %}
+      {%- if settings.card_show_swatches -%}
+        {%- assign color_option = product.options_with_values | where: 'name', 'Color' | first -%}
+        {%- unless color_option -%}
+          {%- assign color_option = product.options_with_values | where: 'name', 'Colour' | first -%}
+        {%- endunless -%}
+        {%- unless color_option -%}
+          {%- assign color_option = product.options_with_values | where: 'name', 'اللون' | first -%}
+        {%- endunless -%}
+        {%- if color_option and color_option.values.size > 1 -%}
+          <p class="card__colors">{{ 'products.product.colors_count' | t: count: color_option.values.size }}</p>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </article>
+{%- else -%}
+  {%- assign ph = index | modulo: 6 | plus: 1 -%}
+  <article class="card reveal">
+    <div class="card__media">
+      {{ 'apparel-' | append: ph | placeholder_svg_tag: 'card__img placeholder' }}
+    </div>
+    <div class="card__info">
+      <h3 class="card__title">{{ 'general.placeholder_product' | t }}</h3>
+      <div class="price"><span class="price__current">{{ 4999 | money }}</span></div>
+    </div>
+  </article>
+{%- endif -%}
