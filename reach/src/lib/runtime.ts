@@ -14,6 +14,9 @@ export const runtime = {
   process: 0,
   /** Service card under hover / keyboard focus, -1 for none. */
   hover: -1,
+  /** Current scroll offset (px) and its per-frame change, smoothed over a few ticks. */
+  scrollY: 0,
+  velocity: 0,
   /** Pointer in normalized device coords (-1..1). */
   pointer: { x: 0, y: 0 },
   /** performance.now() of the last user/scroll activity — keeps the demand frameloop alive. */

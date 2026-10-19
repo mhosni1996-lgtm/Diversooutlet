@@ -162,9 +162,12 @@ export function World({ compact }: { compact: boolean }) {
     const k = VIS_H / vh;
 
     // ---- Smooth the scroll-derived inputs ----
-    sim.story = damp(sim.story, runtime.story, 12, dt);
-    sim.hero = damp(sim.hero, runtime.hero, 12, dt);
-    sim.process = damp(sim.process, runtime.process, 12, dt);
+    // Story, hero and ribbon progress are read straight from scroll — no time-based easing on top.
+    sim.story = runtime.story;
+    sim.hero = runtime.hero;
+    sim.process = runtime.process;
+    // Normalised scroll speed (−1..1): ~40 px per frame counts as full speed.
+    const vel = THREE.MathUtils.clamp(runtime.velocity / 40, -1, 1);
     sim.pointer.x = damp(sim.pointer.x, runtime.pointer.x, 3, dt);
     sim.pointer.y = damp(sim.pointer.y, runtime.pointer.y, 3, dt);
     for (let i = 0; i < 4; i++) sim.hover[i] = damp(sim.hover[i], runtime.hover === i ? 1 : 0, 9, dt);
@@ -223,7 +226,8 @@ export function World({ compact }: { compact: boolean }) {
       vw,
       vh,
       rect,
-      time: now,
+      // "Time" for spins and drifts is scroll distance, so they advance only while scrolling.
+      time: runtime.scrollY / 250,
       hero: sim.hero,
       process: sim.process,
       intro: Math.min((now - sim.introStart) / 1.9, 1),
@@ -246,7 +250,11 @@ export function World({ compact }: { compact: boolean }) {
       const o = sim.cur[e];
       lerpBox(o, sim.A[e], sim.B[e], se);
       // Elements arc toward the camera mid-flight, so transitions read as movement through depth.
-      o.p.z += Math.sin(Math.PI * se) * (compact ? 0.35 : 0.7);
+      const flight = Math.sin(Math.PI * se);
+      o.p.z += flight * (compact ? 0.35 : 0.7);
+      // Speed response: free-moving pieces lean with scroll speed; DOM-locked pieces stay square to the page.
+      const free = Math.max(flight, i0 === 0 ? 1 - se : 0);
+      if (e !== ARROW && free > 0.001 && vel !== 0) o.q.premultiply(sim.q.setFromAxisAngle(AXIS_X, -vel * 0.3 * free));
     }
 
     writeInstances(sim, k, edgesRef.current, facesRef.current, blocksRef.current, sim.hover, story);
@@ -262,7 +270,9 @@ export function World({ compact }: { compact: boolean }) {
     if (arrowRef.current) {
       arrowRef.current.position.copy(a.p);
       arrowRef.current.quaternion.copy(a.q);
-      arrowRef.current.scale.setScalar(Math.max(a.w * a.vis, 1e-4));
+      const s = Math.max(a.w * a.vis, 1e-4);
+      // The arrow stretches along its direction with scroll speed.
+      arrowRef.current.scale.set(s * (1 + Math.abs(vel) * 0.45), s * (1 - Math.abs(vel) * 0.12), s);
     }
 
     // Ribbon progress
@@ -323,13 +333,11 @@ export function World({ compact }: { compact: boolean }) {
 
     // ---- Tell the scene tick whether to keep rendering at full rate ----
     const settled =
-      Math.abs(sim.story - runtime.story) < 1e-4 &&
-      Math.abs(sim.hero - runtime.hero) < 1e-4 &&
-      Math.abs(sim.process - runtime.process) < 1e-4 &&
+      vel === 0 &&
       Math.abs(sim.pointer.x - runtime.pointer.x) < 1e-3 &&
       Math.abs(sim.pointer.y - runtime.pointer.y) < 1e-3 &&
       sim.hover.every((h, i) => Math.abs(h - (runtime.hover === i ? 1 : 0)) < 1e-3);
-    frames.keepAlive = !settled || ctx.intro < 1 || performance.now() - runtime.lastActivity < 900;
+    frames.keepAlive = !settled || ctx.intro < 1;
   });
 
   return (
@@ -365,6 +373,7 @@ type Sim = {
 };
 
 const Y = new THREE.Vector3(0, 1, 0);
+const AXIS_X = new THREE.Vector3(1, 0, 0);
 const _R = new THREE.Matrix4();
 
 /** Frames → 12 edge bars of constant thickness + 2 ice side faces; blocks → sheared instanced boxes. */

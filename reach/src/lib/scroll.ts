@@ -87,7 +87,13 @@ export function setupScroll({ reduced, onActiveSection, onScrolled }: Options) {
       const apply = (p: number) => {
         runtime.process = p;
         track.style.setProperty('--pp', p.toFixed(4));
-        steps.forEach((s, i) => s.classList.toggle('is-reached', reduced || p >= i / (steps.length - 1) - 0.015));
+        steps.forEach((s, i) => {
+          const at = i / (steps.length - 1);
+          s.classList.toggle('is-reached', reduced || p >= at - 0.015);
+          // Copy fades in as the ribbon approaches its node — tied to scroll, not a timed transition.
+          const r = reduced ? 1 : Math.min(Math.max((p - (at - 0.12)) / 0.12, 0), 1);
+          s.style.setProperty('--reveal', r.toFixed(3));
+        });
         poke();
       };
       if (reduced) apply(1);
@@ -104,38 +110,30 @@ export function setupScroll({ reduced, onActiveSection, onScrolled }: Options) {
     if (reduced) return;
 
     // Masked line reveals — complete Arabic lines rise from behind a mask, keeping letters connected.
+    // Scroll-scrubbed: the lines move exactly as far and as fast as the page does (only the hero plays on load).
     gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((block) => {
       const lines = block.querySelectorAll('.mask-line > span');
       const accent = block.querySelector<HTMLElement>('.accent-word');
+      const onLoad = block.dataset.reveal === 'load';
       const tl = gsap.timeline({
-        paused: true,
-        defaults: { ease: EASE_OUT },
+        paused: onLoad,
+        defaults: { ease: onLoad ? EASE_OUT : 'none' },
+        scrollTrigger: onLoad ? undefined : { trigger: block, start: 'top 94%', end: 'top 62%', scrub: true },
       });
       tl.from(lines, { yPercent: 115, duration: REVEAL_DUR, stagger: 0.1 });
-      if (accent) tl.fromTo(accent, { '--accent': 0 }, { '--accent': 1, duration: 0.7, ease: 'power2.inOut' }, '-=0.45');
-
-      if (block.dataset.reveal === 'load') {
-        tl.play(0.0001).delay(0.25);
-      } else {
-        ScrollTrigger.create({
-          trigger: block,
-          start: 'top 88%',
-          onEnter: () => tl.play(),
-          onLeaveBack: () => tl.reverse(),
-        });
-      }
+      if (accent) tl.fromTo(accent, { '--accent': 0 }, { '--accent': 1, duration: 0.7 }, '-=0.45');
+      if (onLoad) tl.play(0.0001).delay(0.25);
     });
 
-    // Soft rise for supporting blocks (one clear event per block, staggered children)
+    // Supporting blocks rise with the scroll (scrubbed, staggered children)
     gsap.utils.toArray<HTMLElement>('[data-rise]').forEach((el) => {
       const targets = el.dataset.rise === 'children' ? Array.from(el.children) : [el];
       gsap.from(targets, {
         y: 28,
         opacity: 0,
-        duration: 0.8,
-        ease: EASE_OUT,
+        ease: 'none',
         stagger: 0.08,
-        scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' },
+        scrollTrigger: { trigger: el, start: 'top 96%', end: 'top 70%', scrub: true },
       });
     });
 

@@ -1288,10 +1288,6 @@ ol {
   font-family: var(--font-en);
   font-weight: 600;
   color: var(--blue);
-  transition:
-    background-color var(--dur) var(--ease-out),
-    color var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out);
   box-shadow: -8px 8px 0 -2px var(--ice), -8px 8px 0 0 var(--blue);
 }
 
@@ -1317,14 +1313,12 @@ ol {
 .step__body {
   color: var(--ink-2);
   max-width: 30ch;
-  transition:
-    opacity var(--dur) var(--ease-out),
-    transform var(--dur) var(--ease-out);
 }
 
-.motion-ok .step:not(.is-reached) .step__body {
-  opacity: 0.18;
-  transform: translateY(8px);
+/* --reveal (0..1) is written from the ribbon's scroll progress. */
+.motion-ok .step__body {
+  opacity: calc(0.18 + 0.82 * var(--reveal, 1));
+  transform: translateY(calc((1 - var(--reveal, 1)) * 8px));
 }
 
 /* CSS progress line: visible only when the 3D ribbon is not rendering. */

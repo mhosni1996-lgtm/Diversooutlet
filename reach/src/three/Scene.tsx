@@ -4,29 +4,23 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { isCompactViewport } from '../lib/env';
 import { setSceneTick } from '../lib/loop';
-import { frames, runtime } from '../lib/runtime';
+import { frames } from '../lib/runtime';
 import { World } from './World';
-
-/** Ambient motion keeps running at ~30 fps for this long after the last interaction, then rendering stops. */
-const AMBIENT_MS = 6000;
 
 /**
  * Fixed, transparent, pointer-transparent canvas behind the semantic HTML.
  * frameloop="never": frames are rendered from the shared GSAP tick (see lib/loop.ts), right after the scroll
- * position updates, so the 3D never lags the page. Rendering stops entirely when nothing is moving.
+ * position updates. All motion is a function of scroll position and speed, so the scene renders only while
+ * the page scrolls (or the pointer/hover changes) and is perfectly still otherwise.
  */
 export default function Scene({ onFail }: { onFail: () => void }) {
   const compact = isCompactViewport();
 
   useEffect(() => {
-    let lastRender = 0;
     setSceneTick((t) => {
       if (document.hidden) return;
-      const now = performance.now();
-      const ambient = now - runtime.lastActivity < AMBIENT_MS && now - lastRender > 32;
-      if (frames.requested || frames.keepAlive || ambient) {
+      if (frames.requested || frames.keepAlive) {
         frames.requested = false;
-        lastRender = now;
         advance(t);
       }
     });

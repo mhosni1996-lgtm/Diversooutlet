@@ -1,7 +1,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import { runtime } from './runtime';
+import { frames, runtime } from './runtime';
 
 /**
  * One clock for everything. Each GSAP tick first advances the scroll (Lenis), which updates
@@ -32,8 +32,15 @@ export function startLoop({ smooth }: { smooth: boolean }) {
       runtime.lastActivity = performance.now();
     });
   }
+  runtime.scrollY = window.scrollY;
   const tick = (time: number) => {
     lenis?.raf(time * 1000);
+    // Scroll speed drives motion: measured per tick, so it falls to zero as soon as scrolling stops.
+    const y = window.scrollY;
+    runtime.velocity += (y - runtime.scrollY - runtime.velocity) * 0.35;
+    if (Math.abs(runtime.velocity) < 0.01) runtime.velocity = 0;
+    if (y !== runtime.scrollY || runtime.velocity !== 0) frames.requested = true;
+    runtime.scrollY = y;
     sceneTick?.(time);
   };
   gsap.ticker.add(tick);
