@@ -22,10 +22,15 @@ export function startLoop({ smooth }: { smooth: boolean }) {
     lenis = new Lenis({
       autoRaf: false,
       lerp: 0.12,
+      // Touch goes through the same loop as the wheel, so on phones the animation also moves
+      // exactly with the finger (and its momentum) instead of a frame behind native scrolling.
+      syncTouch: true,
+      syncTouchLerp: 0.09,
+      touchInertiaExponent: 1.7,
       // Anchor offset comes from CSS scroll-padding-top (header height), which Lenis honours.
       anchors: true,
-      // Dialogs and the mobile menu scroll natively.
-      prevent: (node) => !!node.closest?.('dialog'),
+      // Dialogs, the mobile menu and text areas scroll natively.
+      prevent: (node) => !!node.closest?.('dialog, textarea'),
     });
     lenis.on('scroll', () => {
       ScrollTrigger.update();
