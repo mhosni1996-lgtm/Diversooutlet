@@ -7,6 +7,7 @@ import { Process } from './components/Process';
 import { Services } from './components/Services';
 import { Work } from './components/Work';
 import { applyRootClasses, prefersReducedMotion, supportsWebGL, type RenderMode } from './lib/env';
+import { startLoop } from './lib/loop';
 import { ScrollTrigger, setupScroll } from './lib/scroll';
 
 const Scene = lazy(() => import('./three/Scene'));
@@ -47,6 +48,7 @@ export default function App() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  useEffect(() => startLoop({ smooth: !reduced }), [reduced]);
   useEffect(() => setupScroll({ reduced, onActiveSection: setActive, onScrolled: setScrolled }), [reduced]);
 
   const onFail = useCallback(() => setMode('static'), []);

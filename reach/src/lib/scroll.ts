@@ -46,8 +46,8 @@ export function setupScroll({ reduced, onActiveSection, onScrolled }: Options) {
       if (!el) return;
       ScrollTrigger.create({
         trigger: el,
-        start: 'top bottom',
-        end: id === 'contact' ? 'top 30%' : 'top 22%',
+        start: 'top 82%',
+        end: id === 'contact' ? 'top 30%' : 'top 12%',
         onUpdate: (self) => {
           runtime.segments[i + 1] = self.progress;
           updateStory();

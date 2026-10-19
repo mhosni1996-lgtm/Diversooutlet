@@ -9,8 +9,21 @@ html {
   scroll-padding-top: calc(var(--header-h) + 8px);
 }
 
-html:not(.reduce-motion) {
+html:not(.reduce-motion):not(.lenis) {
   scroll-behavior: smooth;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
 }
 
 body {
@@ -273,14 +286,12 @@ ol {
   height: var(--header-h);
   transition:
     background-color var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    backdrop-filter var(--dur) var(--ease-out);
+    box-shadow var(--dur) var(--ease-out);
 }
 
+/* Solid (no backdrop blur): blurring over a live WebGL canvas re-composites every frame. */
 .site-header.is-scrolled {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 1px 0 var(--line);
 }
 

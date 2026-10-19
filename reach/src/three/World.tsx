@@ -1,8 +1,8 @@
-import { invalidate, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { onPoke, runtime } from '../lib/runtime';
+import { frames, poke, runtime } from '../lib/runtime';
 import {
   ARROW,
   BLOCKS,
@@ -43,7 +43,9 @@ const damp = (a: number, b: number, lambda: number, dt: number) => THREE.MathUti
 const ANCHOR_KEYS = ['hero-stage', 'svc-0', 'svc-1', 'svc-2', 'svc-3', 'svc-deco', 'featured', 'work-cursor', 'process-track', 'node-0', 'node-1', 'node-2', 'node-3', 'contact-stage', 'cta-arrow', 'cta-button'];
 
 export function World({ compact }: { compact: boolean }) {
-  const { camera, size } = useThree();
+  const { camera, size, gl, scene } = useThree();
+  const setDpr = useThree((s) => s.setDpr);
+  const dpr = useThree((s) => s.viewport.dpr);
 
   // ---------- Shared geometry & materials (created once) ----------
   const res = useMemo(() => {
@@ -64,13 +66,25 @@ export function World({ compact }: { compact: boolean }) {
     });
     const arrowMat = new THREE.MeshStandardMaterial({ color: BRAND.yellow, roughness: 0.38, metalness: 0.02 });
     const ribbonMat = new THREE.MeshStandardMaterial({ color: BRAND.yellow, roughness: 0.45, metalness: 0, side: THREE.DoubleSide });
-    const shadowMat = new THREE.ShadowMaterial({ color: 0x14142b, opacity: 0, transparent: true });
-    return { edgeGeo, faceGeo, blockGeo, arrowGeo, edgeMat, faceMat, blockMat, glassMat, arrowMat, ribbonMat, shadowMat };
+    // Soft contact shadow: a pre-blurred radial texture instead of a per-frame shadow map.
+    const blob = document.createElement('canvas');
+    blob.width = blob.height = 128;
+    const g2 = blob.getContext('2d')!;
+    const grad = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(20,20,43,1)');
+    grad.addColorStop(0.45, 'rgba(20,20,43,0.45)');
+    grad.addColorStop(1, 'rgba(20,20,43,0)');
+    g2.fillStyle = grad;
+    g2.fillRect(0, 0, 128, 128);
+    const blobTex = new THREE.CanvasTexture(blob);
+    blobTex.colorSpace = THREE.SRGBColorSpace;
+    const shadowMat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, opacity: 0, depthWrite: false });
+    return { edgeGeo, faceGeo, blockGeo, arrowGeo, edgeMat, faceMat, blockMat, glassMat, arrowMat, ribbonMat, shadowMat, blobTex };
   }, []);
 
   useEffect(
     () => () => {
-      Object.values(res).forEach((r) => (r as THREE.BufferGeometry | THREE.Material).dispose());
+      Object.values(res).forEach((r) => (r as THREE.BufferGeometry | THREE.Material | THREE.Texture).dispose());
     },
     [res],
   );
@@ -82,7 +96,6 @@ export function World({ compact }: { compact: boolean }) {
   const arrowRef = useRef<THREE.Mesh>(null);
   const ribbonRef = useRef<THREE.Mesh>(null);
   const groundRef = useRef<THREE.Mesh>(null);
-  const lightRef = useRef<THREE.DirectionalLight>(null);
 
   // ---------- Per-frame state (no allocations in the loop) ----------
   const sim = useMemo(() => {
@@ -105,7 +118,9 @@ export function World({ compact }: { compact: boolean }) {
       ribbon: null as Ribbon | null,
       ribbonKey: '',
       ribbonOrigin: new THREE.Vector3(),
-      idleTimer: 0 as number | ReturnType<typeof setTimeout>,
+      compiled: false,
+      perfSamples: 0,
+      perfTotal: 0,
       corners: Array.from({ length: 8 }, () => new THREE.Vector3()),
       m: new THREE.Matrix4(),
       q: new THREE.Quaternion(),
@@ -118,29 +133,25 @@ export function World({ compact }: { compact: boolean }) {
     };
   }, []);
 
-  // Wake the demand frameloop on scroll / pointer / hover / resize.
+  // Pointer and resize wake the scene tick.
   useEffect(() => {
-    const off = onPoke(() => invalidate());
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return;
       runtime.pointer.x = (e.clientX / innerWidth) * 2 - 1;
       runtime.pointer.y = (e.clientY / innerHeight) * 2 - 1;
-      runtime.lastActivity = performance.now();
-      invalidate();
+      poke();
     };
     const onResize = () => {
       runtime.layoutVersion++;
-      invalidate();
+      poke();
     };
     addEventListener('pointermove', onMove, { passive: true });
     addEventListener('resize', onResize);
     return () => {
-      off();
       removeEventListener('pointermove', onMove);
       removeEventListener('resize', onResize);
-      clearTimeout(sim.idleTimer);
     };
-  }, [sim]);
+  }, []);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);
@@ -151,9 +162,9 @@ export function World({ compact }: { compact: boolean }) {
     const k = VIS_H / vh;
 
     // ---- Smooth the scroll-derived inputs ----
-    sim.story = damp(sim.story, runtime.story, 7, dt);
-    sim.hero = damp(sim.hero, runtime.hero, 8, dt);
-    sim.process = damp(sim.process, runtime.process, 8, dt);
+    sim.story = damp(sim.story, runtime.story, 12, dt);
+    sim.hero = damp(sim.hero, runtime.hero, 12, dt);
+    sim.process = damp(sim.process, runtime.process, 12, dt);
     sim.pointer.x = damp(sim.pointer.x, runtime.pointer.x, 3, dt);
     sim.pointer.y = damp(sim.pointer.y, runtime.pointer.y, 3, dt);
     for (let i = 0; i < 4; i++) sim.hover[i] = damp(sim.hover[i], runtime.hover === i ? 1 : 0, 9, dt);
@@ -191,7 +202,7 @@ export function World({ compact }: { compact: boolean }) {
 
     // ---- Ribbon: rebuild when the track layout changes ----
     const trackEl = sim.els.get('process-track');
-    if (trackEl) {
+    if (trackEl && (sim.story > 1.6 || !sim.ribbon)) {
       const tr = trackEl.getBoundingClientRect();
       const nodes: { x: number; y: number }[] = [];
       for (let i = 0; i < 4; i++) {
@@ -229,13 +240,13 @@ export function World({ compact }: { compact: boolean }) {
     const local = story - i0;
     STATES[i0](ctx, sim.A);
     STATES[i0 + 1](ctx, sim.B);
-    const spread = 0.035;
+    const spread = 0.025;
     for (let e = 0; e < COUNT; e++) {
       const se = easeInOut(THREE.MathUtils.clamp((local - e * spread) / (1 - spread * (COUNT - 1)), 0, 1));
       const o = sim.cur[e];
       lerpBox(o, sim.A[e], sim.B[e], se);
       // Elements arc toward the camera mid-flight, so transitions read as movement through depth.
-      o.p.z += Math.sin(Math.PI * se) * (compact ? 0.6 : 1.3);
+      o.p.z += Math.sin(Math.PI * se) * (compact ? 0.35 : 0.7);
     }
 
     writeInstances(sim, k, edgesRef.current, facesRef.current, blocksRef.current, sim.hover, story);
@@ -268,19 +279,31 @@ export function World({ compact }: { compact: boolean }) {
     const cu = contactUnit(ctx);
     const heroW = 1 - THREE.MathUtils.clamp(story, 0, 1);
     const contactW = THREE.MathUtils.clamp(story - 3, 0, 1);
-    if (groundRef.current && lightRef.current) {
+    if (groundRef.current) {
       const useHero = heroW >= contactW;
       const unit = useHero ? hu : cu;
       if (unit) {
         const gy = useHero ? unit.s.cy + (0.15 + HERO_GROUND) * unit.u : unit.s.cy + CONTACT_GROUND * unit.u;
-        groundRef.current.position.set(unit.s.cx, gy, 0);
-        groundRef.current.scale.setScalar(unit.u * 9);
-        lightRef.current.position.set(unit.s.cx + 1.5, gy + 12, 2.5);
-        lightRef.current.target.position.set(unit.s.cx, gy, 0);
-        lightRef.current.target.updateMatrixWorld();
+        groundRef.current.position.set(unit.s.cx - 0.2 * unit.u, gy, 0);
+        groundRef.current.scale.set(unit.u * 5.4, unit.u * 2.6, 1);
       }
-      res.shadowMat.opacity = 0.13 * Math.max(heroW, contactW * 0.7);
+      res.shadowMat.opacity = 0.2 * Math.max(heroW, contactW * 0.8);
       groundRef.current.visible = res.shadowMat.opacity > 0.004;
+    }
+
+    // Compile every shader once up front (incl. objects still hidden) so no program compiles mid-scroll.
+    if (!sim.compiled && ribbonRef.current && groundRef.current && edgesRef.current && facesRef.current) {
+      sim.compiled = true;
+      // Give every instanced mesh its colour attribute now; adding it later forces a new shader variant.
+      for (let i = 0; i < FRAMES * 12; i++) if (!edgesRef.current.instanceColor) edgesRef.current.setColorAt(i, BRAND.blue);
+      for (let i = 0; i < FRAMES * 2; i++) if (!facesRef.current.instanceColor || i === 0) facesRef.current.setColorAt(i, BRAND.ice);
+      if (!import.meta.env.DEV) gl.debug.checkShaderErrors = false;
+      const r = ribbonRef.current.visible;
+      const gr = groundRef.current.visible;
+      ribbonRef.current.visible = groundRef.current.visible = true;
+      gl.compile(scene, camera);
+      ribbonRef.current.visible = r;
+      groundRef.current.visible = gr;
     }
 
     // Camera: a gentle dolly while the hero opens, back to the canonical framing afterwards.
@@ -288,7 +311,17 @@ export function World({ compact }: { compact: boolean }) {
     const cx = hu ? hu.s.cx * 0.12 * dolly : 0;
     camera.position.set(cx, 0, CAMERA_Z - 1.8 * dolly);
 
-    // ---- Demand frameloop: full rate while active, 30 fps for ambient idle motion ----
+    // ---- Adaptive resolution: drop pixel ratio if active frames are consistently slow ----
+    if (rawDt < 0.25 && performance.now() - runtime.lastActivity < 900) {
+      sim.perfTotal += rawDt;
+      if (++sim.perfSamples === 45) {
+        if (sim.perfTotal / sim.perfSamples > 0.026 && dpr > 1) setDpr(Math.max(1, dpr - 0.25));
+        sim.perfSamples = 0;
+        sim.perfTotal = 0;
+      }
+    }
+
+    // ---- Tell the scene tick whether to keep rendering at full rate ----
     const settled =
       Math.abs(sim.story - runtime.story) < 1e-4 &&
       Math.abs(sim.hero - runtime.hero) < 1e-4 &&
@@ -296,43 +329,22 @@ export function World({ compact }: { compact: boolean }) {
       Math.abs(sim.pointer.x - runtime.pointer.x) < 1e-3 &&
       Math.abs(sim.pointer.y - runtime.pointer.y) < 1e-3 &&
       sim.hover.every((h, i) => Math.abs(h - (runtime.hover === i ? 1 : 0)) < 1e-3);
-    const active = !settled || ctx.intro < 1 || performance.now() - runtime.lastActivity < 900;
-    if (active) invalidate();
-    else if (!sim.idleTimer) {
-      sim.idleTimer = setTimeout(() => {
-        sim.idleTimer = 0;
-        invalidate();
-      }, 1000 / 30);
-    }
+    frames.keepAlive = !settled || ctx.intro < 1 || performance.now() - runtime.lastActivity < 900;
   });
 
   return (
     <>
       <hemisphereLight args={['#ffffff', '#d6deee', 1.0]} />
-      <directionalLight
-        ref={lightRef}
-        position={[3, 9, 7]}
-        intensity={2.0}
-        castShadow={!compact}
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-9}
-        shadow-camera-right={9}
-        shadow-camera-top={9}
-        shadow-camera-bottom={-9}
-        shadow-camera-near={0.5}
-        shadow-camera-far={40}
-        shadow-bias={-0.0004}
-        shadow-radius={6}
-      />
+      <directionalLight position={[3, 9, 7]} intensity={2.0} />
       <directionalLight position={[-6, 2, 8]} intensity={0.35} />
 
-      <instancedMesh ref={edgesRef} args={[res.edgeGeo, res.edgeMat, FRAMES * 12]} castShadow frustumCulled={false} />
+      <instancedMesh ref={edgesRef} args={[res.edgeGeo, res.edgeMat, FRAMES * 12]} frustumCulled={false} />
       <instancedMesh ref={facesRef} args={[res.faceGeo, res.faceMat, FRAMES * 2]} frustumCulled={false} />
-      <instancedMesh ref={blocksRef} args={[res.blockGeo, res.blockMat, BLOCKS]} castShadow frustumCulled={false} />
+      <instancedMesh ref={blocksRef} args={[res.blockGeo, res.blockMat, BLOCKS]} frustumCulled={false} />
       <mesh ref={glassRef} geometry={res.blockGeo} material={res.glassMat} renderOrder={2} frustumCulled={false} />
-      <mesh ref={arrowRef} geometry={res.arrowGeo} material={res.arrowMat} castShadow frustumCulled={false} />
+      <mesh ref={arrowRef} geometry={res.arrowGeo} material={res.arrowMat} frustumCulled={false} />
       <mesh ref={ribbonRef} material={res.ribbonMat} frustumCulled={false} />
-      <mesh ref={groundRef} rotation-x={-Math.PI / 2} material={res.shadowMat} receiveShadow>
+      <mesh ref={groundRef} rotation-x={-Math.PI / 2} material={res.shadowMat} renderOrder={-1}>
         <planeGeometry args={[1, 1]} />
       </mesh>
     </>

@@ -27,18 +27,16 @@ export function updateStory() {
   runtime.story = s[1] + s[2] + s[3] + s[4];
 }
 
-type Listener = () => void;
-const activityListeners = new Set<Listener>();
+/** Render scheduling, read by the scene tick. */
+export const frames = {
+  /** Something changed: render on the next tick. */
+  requested: true,
+  /** The scene is still easing toward its targets. */
+  keepAlive: true,
+};
 
 /** Notify the scene that something changed and it should render. */
 export function poke() {
   runtime.lastActivity = performance.now();
-  activityListeners.forEach((l) => l());
-}
-
-export function onPoke(l: Listener) {
-  activityListeners.add(l);
-  return () => {
-    activityListeners.delete(l);
-  };
+  frames.requested = true;
 }
