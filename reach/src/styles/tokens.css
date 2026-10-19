@@ -1,0 +1,53 @@
+/* REACH brand tokens — colors sampled from the official logo artwork. */
+:root {
+  --blue: #4847ae;        /* logo outline + letters */
+  --blue-deep: #34338a;   /* pressed / hover */
+  --blue-ink: #2a2970;
+  --yellow: #fcd704;      /* logo arrow */
+  --yellow-deep: #e9c400;
+  --ice: #d4ecf6;         /* logo extrusion faces */
+  --ice-soft: #ecf6fb;
+  --white: #ffffff;
+  --paper: #f6f8fb;
+
+  --ink: #14142b;         /* primary text  (17.9:1 on white) */
+  --ink-2: #44445e;       /* secondary text (9.6:1 on white) */
+  --ink-3: #6b6b84;       /* tertiary / labels (5.3:1 on white) */
+  --line: rgba(20, 20, 43, 0.12);
+  --line-strong: rgba(20, 20, 43, 0.22);
+  --danger: #b3261e;
+
+  --font-ar: 'Alexandria Variable', 'Alexandria', 'Segoe UI', Tahoma, sans-serif;
+  --font-en: 'Space Grotesk Variable', 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+
+  --fs-display: clamp(2.5rem, 1.1rem + 4.6vw, 5.8rem);
+  --fs-h2: clamp(2.1rem, 1.3rem + 3.4vw, 4.4rem);
+  --fs-h3: clamp(1.25rem, 1.05rem + 0.7vw, 1.65rem);
+  --fs-lead: clamp(1.05rem, 0.95rem + 0.45vw, 1.35rem);
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-label: 0.75rem;
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --maxw: 1320px;
+  --header-h: 72px;
+  --radius: 4px;
+  --stroke: 2px;
+
+  /* One motion language: decisive out-ease, symmetrical in-out for scrubbed motion. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur: 420ms;
+  --dur-slow: 900ms;
+
+  --focus: 0 0 0 3px var(--white), 0 0 0 6px var(--blue);
+  --extrude: -12px 12px 0 -2px var(--ice), -12px 12px 0 0 var(--blue);
+  --extrude-hover: -18px 18px 0 -2px var(--yellow), -18px 18px 0 0 var(--blue);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --header-h: 64px;
+  }
+}
