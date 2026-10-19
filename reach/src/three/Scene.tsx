@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { isCompactViewport } from '../lib/env';
 import { setSceneTick } from '../lib/loop';
-import { frames } from '../lib/runtime';
+import { frames, runtime } from '../lib/runtime';
 import { World } from './World';
 
 /**
@@ -17,14 +17,41 @@ export default function Scene({ onFail }: { onFail: () => void }) {
   const compact = isCompactViewport();
 
   useEffect(() => {
+    const layer = document.querySelector<HTMLElement>('.webgl-layer');
+    // Layer = viewport + overscan above and below. Height only grows while the width is unchanged,
+    // so the iOS toolbar collapsing/expanding doesn't keep re-allocating the canvas.
+    let lastW = 0;
+    let maxH = 0;
+    const size = () => {
+      if (!layer) return;
+      if (innerWidth !== lastW) {
+        lastW = innerWidth;
+        maxH = 0;
+      }
+      maxH = Math.max(maxH, innerHeight);
+      runtime.overscan = Math.round(maxH * 0.25);
+      layer.style.height = `${maxH + runtime.overscan * 2}px`;
+      runtime.layoutVersion++;
+      frames.requested = true;
+    };
+    size();
+    addEventListener('resize', size);
+
     setSceneTick((t) => {
       if (document.hidden) return;
       if (frames.requested || frames.keepAlive) {
         frames.requested = false;
+        const y = window.scrollY;
+        runtime.renderScroll = y;
+        // Commit the layer position and the GL frame in the same task.
+        if (layer) layer.style.transform = `translate3d(0, ${y - runtime.overscan}px, 0)`;
         advance(t);
       }
     });
-    return () => setSceneTick(null);
+    return () => {
+      removeEventListener('resize', size);
+      setSceneTick(null);
+    };
   }, []);
 
   return (

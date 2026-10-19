@@ -17,6 +17,10 @@ export const runtime = {
   /** Current scroll offset (px) and its per-frame change, smoothed over a few ticks. */
   scrollY: 0,
   velocity: 0,
+  /** Extra canvas height above and below the viewport (px), so a scrolled-ahead page never shows an edge. */
+  overscan: 0,
+  /** Scroll offset the current WebGL frame was rendered for (canvas sits at renderScroll − overscan). */
+  renderScroll: 0,
   /** Pointer in normalized device coords (-1..1). */
   pointer: { x: 0, y: 0 },
   /** performance.now() of the last user/scroll activity — keeps the demand frameloop alive. */

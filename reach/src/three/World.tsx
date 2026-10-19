@@ -113,6 +113,8 @@ export function World({ compact }: { compact: boolean }) {
       hover: [0, 0, 0, 0],
       introStart: -1,
       els: new Map<string, HTMLElement>(),
+      /** Anchor boxes in document coordinates, measured only when layout changes. */
+      doc: new Map<string, { top: number; left: number; w: number; h: number; sticky: boolean }>(),
       rects: new Map<string, WRect>(),
       layoutVersion: -1,
       ribbon: null as Ribbon | null,
@@ -147,7 +149,11 @@ export function World({ compact }: { compact: boolean }) {
     };
     addEventListener('pointermove', onMove, { passive: true });
     addEventListener('resize', onResize);
+    const ro = new ResizeObserver(onResize);
+    const main = document.getElementById('main');
+    if (main) ro.observe(main);
     return () => {
+      ro.disconnect();
       removeEventListener('pointermove', onMove);
       removeEventListener('resize', onResize);
     };
@@ -157,9 +163,12 @@ export function World({ compact }: { compact: boolean }) {
     const dt = Math.min(rawDt, 1 / 20);
     const now = state.clock.elapsedTime;
     if (sim.introStart < 0) sim.introStart = now;
+    // Canvas = viewport + overscan; its top sits at (renderScroll − overscan) in the document.
     const vw = size.width;
     const vh = size.height;
     const k = VIS_H / vh;
+    const over = runtime.overscan;
+    const canvasTop = runtime.renderScroll - over;
 
     // ---- Smooth the scroll-derived inputs ----
     // Story, hero and ribbon progress are read straight from scroll — no time-based easing on top.
@@ -176,49 +185,63 @@ export function World({ compact }: { compact: boolean }) {
     if (sim.layoutVersion !== runtime.layoutVersion) {
       sim.layoutVersion = runtime.layoutVersion;
       sim.els.clear();
+      sim.doc.clear();
+      const sy = window.scrollY;
       for (const key of ANCHOR_KEYS) {
         const el = document.querySelector<HTMLElement>(`[data-anchor="${key}"]`);
-        if (el) sim.els.set(key, el);
+        if (!el) continue;
+        sim.els.set(key, el);
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) continue;
+        const stickyEl = el.closest<HTMLElement>('.hero__sticky');
+        const sticky = !!stickyEl && getComputedStyle(stickyEl).position === 'sticky';
+        sim.doc.set(key, { top: r.top + sy, left: r.left, w: r.width, h: r.height, sticky });
       }
     }
     sim.rects.clear();
+    // Only the pinned hero stage (desktop) is read live; everything else comes from cached document
+    // boxes, so no frame forces a layout.
     const rect = (key: string): WRect | null => {
       const cached = sim.rects.get(key);
       if (cached) return cached;
-      const el = sim.els.get(key);
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 && r.height === 0) return null;
+      const d = sim.doc.get(key);
+      if (!d) return null;
+      let top: number;
+      let left = d.left;
+      if (d.sticky) {
+        const r = sim.els.get(key)!.getBoundingClientRect();
+        top = r.top + over;
+        left = r.left;
+      } else top = d.top - canvasTop;
       const w: WRect = {
-        cx: (r.left + r.width / 2 - vw / 2) * k,
-        cy: (vh / 2 - (r.top + r.height / 2)) * k,
-        w: r.width * k,
-        h: r.height * k,
-        l: (r.left - vw / 2) * k,
-        r: (r.right - vw / 2) * k,
-        t: (vh / 2 - r.top) * k,
-        b: (vh / 2 - r.bottom) * k,
+        cx: (left + d.w / 2 - vw / 2) * k,
+        cy: (vh / 2 - (top + d.h / 2)) * k,
+        w: d.w * k,
+        h: d.h * k,
+        l: (left - vw / 2) * k,
+        r: (left + d.w - vw / 2) * k,
+        t: (vh / 2 - top) * k,
+        b: (vh / 2 - top - d.h) * k,
       };
       sim.rects.set(key, w);
       return w;
     };
 
     // ---- Ribbon: rebuild when the track layout changes ----
-    const trackEl = sim.els.get('process-track');
-    if (trackEl && (sim.story > 1.6 || !sim.ribbon)) {
-      const tr = trackEl.getBoundingClientRect();
+    const tr = sim.doc.get('process-track');
+    if (tr && (sim.story > 1.6 || !sim.ribbon)) {
       const nodes: { x: number; y: number }[] = [];
       for (let i = 0; i < 4; i++) {
-        const n = sim.els.get(`node-${i}`)?.getBoundingClientRect();
-        if (n) nodes.push({ x: n.left + n.width / 2 - tr.left, y: n.top + n.height / 2 - tr.top });
+        const n = sim.doc.get(`node-${i}`);
+        if (n) nodes.push({ x: n.left + n.w / 2 - tr.left, y: n.top + n.h / 2 - tr.top });
       }
-      const key = `${Math.round(tr.width)}x${Math.round(tr.height)}:${vh}:${nodes.map((n) => `${Math.round(n.x)},${Math.round(n.y)}`).join('|')}`;
+      const key = `${Math.round(tr.w)}x${Math.round(tr.h)}:${vh}:${nodes.map((n) => `${Math.round(n.x)},${Math.round(n.y)}`).join('|')}`;
       if (nodes.length === 4 && key !== sim.ribbonKey) {
         sim.ribbonKey = key;
         sim.ribbon = buildRibbon(nodes, k, compact ? 9 : 13, sim.ribbon ?? undefined);
         if (ribbonRef.current) ribbonRef.current.geometry = sim.ribbon.geometry;
       }
-      sim.ribbonOrigin.set((tr.left - vw / 2) * k, (vh / 2 - tr.top) * k, -0.12);
+      sim.ribbonOrigin.set((tr.left - vw / 2) * k, (vh / 2 - (tr.top - canvasTop)) * k, -0.12);
     }
 
     const ctx: Ctx = {

@@ -113,14 +113,25 @@ ol {
   position: relative;
   isolation: isolate;
   background: var(--white);
+  /* The WebGL layer extends past the viewport; clip keeps it from adding scroll length. */
+  overflow: clip;
 }
 
+/*
+ * The WebGL layer lives in the document (not position: fixed). Each frame it is placed at the scroll
+ * offset it was rendered for, so between frames the OS scrolls it together with the content:
+ * DOM-locked geometry stays glued to the page even when the compositor is ahead of JavaScript.
+ */
 .webgl-layer {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
   z-index: -1;
   pointer-events: none;
   contain: strict;
+  will-change: transform;
 }
 
 .webgl-layer canvas {
@@ -1647,6 +1658,18 @@ ol {
 
 .has-webgl .static-art {
   display: none;
+}
+
+/* ---------- Touch devices: no pinned hero (the sculpture opens as the hero scrolls away) ---------- */
+.is-touch .hero {
+  height: auto;
+}
+
+.is-touch .hero__sticky {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+  padding-bottom: 32px;
 }
 
 /* ---------- Reduced motion ---------- */

@@ -63,10 +63,11 @@ export function setupScroll({ reduced, onActiveSection, onScrolled }: Options) {
     // Hero pin (CSS sticky) progress: the sculpture opens in layers.
     const hero = document.querySelector<HTMLElement>('.hero');
     if (hero && !reduced) {
+      const touch = document.documentElement.classList.contains('is-touch');
       ScrollTrigger.create({
         trigger: hero,
         start: 'top top',
-        end: 'bottom bottom',
+        end: touch ? 'bottom 35%' : 'bottom bottom',
         onUpdate: (self) => {
           runtime.hero = self.progress;
           poke();

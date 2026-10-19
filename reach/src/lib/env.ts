@@ -24,6 +24,11 @@ export function isCompactViewport(): boolean {
   return typeof matchMedia !== 'undefined' && matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 }
 
+/** Phones/tablets: native touch scrolling, no pinned hero. */
+export function isTouchDevice(): boolean {
+  return typeof matchMedia !== 'undefined' && matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
 export type RenderMode = 'webgl' | 'static';
 
 export function applyRootClasses(mode: RenderMode, reduced: boolean) {
@@ -32,4 +37,5 @@ export function applyRootClasses(mode: RenderMode, reduced: boolean) {
   root.classList.toggle('no-webgl', mode !== 'webgl');
   root.classList.toggle('reduce-motion', reduced);
   root.classList.toggle('motion-ok', !reduced);
+  root.classList.toggle('is-touch', isTouchDevice());
 }

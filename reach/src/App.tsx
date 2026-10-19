@@ -6,7 +6,7 @@ import { Hero } from './components/Hero';
 import { Process } from './components/Process';
 import { Services } from './components/Services';
 import { Work } from './components/Work';
-import { applyRootClasses, prefersReducedMotion, supportsWebGL, type RenderMode } from './lib/env';
+import { applyRootClasses, isTouchDevice, prefersReducedMotion, supportsWebGL, type RenderMode } from './lib/env';
 import { startLoop } from './lib/loop';
 import { ScrollTrigger, setupScroll } from './lib/scroll';
 
@@ -48,7 +48,9 @@ export default function App() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  useEffect(() => startLoop({ smooth: !reduced }), [reduced]);
+  // No Lenis on touch devices: its non-passive touch listeners would make iOS wait for JavaScript on every
+  // finger move. Native scrolling is read directly by the shared tick instead.
+  useEffect(() => startLoop({ smooth: !reduced && !isTouchDevice() }), [reduced]);
   useEffect(() => setupScroll({ reduced, onActiveSection: setActive, onScrolled: setScrolled }), [reduced]);
 
   const onFail = useCallback(() => setMode('static'), []);
