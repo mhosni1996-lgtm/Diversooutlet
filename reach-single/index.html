@@ -726,11 +726,7 @@ input,textarea,select{ font:inherit; color:inherit }
   </div>
 </div>
 
-<script type="importmap">
-{ "imports": { "lenis": "https://unpkg.com/lenis@1.3.23/dist/lenis.mjs" } }
-</script>
 <script type="module">
-import Lenis from 'lenis';
 
 /* ===================== Configuration ===================== */
 /** Form integration: leave empty until a real backend exists. When set, the form POSTs JSON
@@ -752,7 +748,16 @@ applyAdaptiveGrid(); addEventListener('resize', applyAdaptiveGrid);
 const isTouch = matchMedia('(hover: none) and (pointer: coarse)').matches;
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
-const lenis = isTouch ? null : new Lenis({ smoothWheel: true });
+// Smooth scrolling library: self-hosted copy first, CDN second, native scrolling if both fail —
+// the page (and its loader) never depends on it being available.
+async function loadLenis(){
+  for (const src of ['./assets/lenis.mjs', 'https://unpkg.com/lenis@1.3.23/dist/lenis.mjs']){
+    try { return (await import(src)).default; } catch { /* try the next source */ }
+  }
+  return null;
+}
+const Lenis = isTouch ? null : await loadLenis();
+const lenis = Lenis ? new Lenis({ smoothWheel: true }) : null;
 if (lenis){ const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf); }
 
 const html = document.documentElement;
